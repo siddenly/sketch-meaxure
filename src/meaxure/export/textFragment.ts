@@ -9,7 +9,7 @@ import { TextFragment } from "../../sketch/text/textFragment";
 import { Edge, EdgeVertical } from "../../sketch/layer/alignment";
 import { tempLayers } from "./tempLayers";
 
-export function getTextFragment(artboard: Artboard, layer: Text, data: ArtboardData) {
+export function getTextFragment(artboard: Artboard, layer: Text, data: ArtboardData, platform: string) {
     if (layer.type != sketch.Types.Text || layer.getFragmentsCount() < 2) return;
     let fragments = layer.getFragments();
     // stopwatch.tik('get text fragments');
@@ -103,7 +103,7 @@ export function getTextFragment(artboard: Artboard, layer: Text, data: ArtboardD
     }
     // stopwatch.tik('create temp texts for fragments');
     for (let text of sketch.find<Text>('Text', textGroup)) {
-        getLayerData(artboard, text, data, false);
+        getLayerData(artboard, text, data, false, platform);
     }
     textGroup.remove();
 }

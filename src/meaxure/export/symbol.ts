@@ -3,12 +3,11 @@
 // license that can be found in the LICENSE file.
 
 import { LayerData, ArtboardData, SMType } from "../interfaces";
-import { stopwatch } from ".";
 import { getLayerData } from "./layerData";
 import { tempLayers } from "./tempLayers";
 import { getChildrenForExport, LayerPlaceholder } from "./layers";
 
-export function getSymbol(artboard: Artboard, layer: SymbolInstance, layerData: LayerData, data: ArtboardData, byInfluence: boolean) {
+export function getSymbol(artboard: Artboard, layer: SymbolInstance, layerData: LayerData, data: ArtboardData, byInfluence: boolean, platform: string) {
     if (layerData.type != SMType.symbol) return;
     // symbol instance of none, #4
     if (!layer.master) return;
@@ -44,7 +43,7 @@ export function getSymbol(artboard: Artboard, layer: SymbolInstance, layerData: 
             idx++;
             // console.log(instanceLayer.name + ":" + (masterLayer ? masterLayer.name : 'undefined'));
         }
-        getLayerData(artboard, instanceLayer, data, byInfluence, masterLayer);
+        getLayerData(artboard, instanceLayer, data, byInfluence, platform, masterLayer);
     }
     tempGroup.remove();
 }

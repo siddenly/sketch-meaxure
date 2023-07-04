@@ -162,7 +162,7 @@
                     '<input id="filter" type="text" placeholder="' + _('Filter') + '">',
                     '</div>',
                     '</div>',
-                    '<div class="options">',
+                    '<div class="options order-selector">',
                     '<div class="item">',
                     '<div class="orderbox">',
                     '<div class="radiobox artboard-rows-radio" title="' + _('Order by artboard rows') + '">',
@@ -210,8 +210,12 @@
                     _('Export layer influence rect'),
                     '</label>',
                     '</div>',
-
                     '</div>',
+                    `<div class="platform-selector">
+                        <h4>${_('Use CSS var')}</h4>
+                        <label><input type="radio" name="platform" value="" checked>${_('Without CSS var')}</label>
+                        ${(data.platforms || []).map(p => `<label><input type="radio" name="platform" value="${p}">${p}</label>`).join('')}
+                    </div>`,
                     '<div class="footer">',
                     '<button id="submit" class="submit" disabled="disabled">' + _('Export') + '</button>',
                     '</div>',
@@ -351,6 +355,7 @@
                         exportInfluenceRect: $('input[name=export-influenceRect]:checked').length > 0,
                         exportOption: $('input[name=export-option]:checked').length > 0,
                         selection: {},
+                        platform: $('input[name=platform]:checked').val()
                     }
                     $('input[name=artboards]:checked').each(function () {
                         var objectID = $(this).val();

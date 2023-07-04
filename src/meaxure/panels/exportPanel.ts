@@ -8,7 +8,6 @@ import { getResourcePath } from "../helpers/helper";
 import { getLanguage } from "../common/language";
 import { sketch } from "../../sketch";
 import { getChildrenForExport, LayerPlaceholder } from "../export/layers";
-import { TintInfo } from "../export/tint";
 
 type OptionArtboardOrder = 'artboard-rows' | 'artboard-cols' | 'layer-order' | 'alphabet';
 interface PageInfo {
@@ -38,6 +37,7 @@ interface ExportData {
     exportInfluenceRect: boolean;
     order: OptionArtboardOrder;
     reverse: boolean;
+    platforms: string[];
 }
 
 interface SubmitData {
@@ -46,6 +46,7 @@ interface SubmitData {
     exportInfluenceRect: boolean;
     order: OptionArtboardOrder;
     reverse: boolean;
+    platform: string;
 }
 
 interface ExportConfig {
@@ -53,6 +54,7 @@ interface ExportConfig {
     layersCount: number;
     advancedMode: boolean;
     byInfluence: boolean;
+    platform: string
 }
 
 export function exportPanel(): Promise<ExportConfig> {
@@ -60,7 +62,7 @@ export function exportPanel(): Promise<ExportConfig> {
         identifier: 'co.jebbs.sketch-meaxure.export',
         url: getResourcePath() + "/panel/export.html",
         width: 320,
-        height: 597,
+        height: 680,
     });
     if (!panel) return undefined;
 
@@ -96,6 +98,7 @@ export function exportPanel(): Promise<ExportConfig> {
                 layersCount: layersCount,
                 advancedMode: rdata.exportOption,
                 byInfluence: rdata.exportInfluenceRect,
+                platform: rdata.platform
             });
             panel.close();
         });
@@ -114,6 +117,7 @@ function prepareExportData(): [ExportData, { [key: string]: Artboard }] {
         exportInfluenceRect: context.configs.byInfluence,
         order: 'artboard-rows',
         reverse: false,
+        platforms: Object.keys(context.configs.cssVarMap)
     };
 
     let artboardSet = new Set<string>();
@@ -159,6 +163,7 @@ function prepareExportData(): [ExportData, { [key: string]: Artboard }] {
         }
         data.pages.push(pageData);
     }
+
     return [data, allArtboards];
 }
 

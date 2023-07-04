@@ -4,7 +4,6 @@
 
 import { context } from '../common/context';
 import { createWebviewPanel } from '../../webviewPanel';
-import { logger } from '../common/logger';
 import { getResourcePath } from '../helpers/helper';
 import { getLanguage } from '../common/language';
 
@@ -13,6 +12,7 @@ interface SettingData {
     scale: number;
     units: string;
     colorFormat: string;
+    cssVarMap: {[k: string]: {[k: string]: string}};
 }
 
 export function settingsPanel() {
@@ -20,7 +20,7 @@ export function settingsPanel() {
         identifier: 'co.jebbs.sketch-meaxure.settings',
         url: getResourcePath() + "/panel/settings.html",
         width: 280,
-        height: 338,
+        height: 474,
     });
     if (!panel) return undefined;
 
@@ -30,12 +30,14 @@ export function settingsPanel() {
         data.scale = context.configs.resolution;
         data.units = context.configs.units;
         data.colorFormat = context.configs.format;
+        data.cssVarMap = context.configs.cssVarMap;
     }
     panel.onDidReceiveMessage('init', () => data);
-    panel.onDidReceiveMessage<SettingData>('submit', data => {
+    panel.onDidReceiveMessage<SettingData>('submit', (data: SettingData) => {
         context.configs.resolution = data.scale;
         context.configs.units = data.units;
         context.configs.format = data.colorFormat;
+        context.configs.cssVarMap = data.cssVarMap;
         panel.close();
     });
     panel.show();

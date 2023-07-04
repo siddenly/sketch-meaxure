@@ -4,6 +4,8 @@
 
 import { sketch } from "../../sketch";
 
+const CSS_VAR_MAP_SETTING_KEY = 'sketch-meaxure-css-var-map-setting';
+
 export class ConfigsMaster {
     private _document;
     constructor(document) {
@@ -33,6 +35,7 @@ export class ConfigsMaster {
     set format(value: string) {
         this._setDocumentSetting<string>('format', value);
     }
+
     get properties(): string[] {
         return this._readSessionVariable<string[]>('properties', []);
     }
@@ -51,6 +54,14 @@ export class ConfigsMaster {
     set byPercentage(value: boolean) {
         this._setSessionVariable<boolean>('byPercentage', value);
     }
+
+    get cssVarMap(): {[k: string]: {[k: string]: string}} {
+        return sketch.Settings.settingForKey(CSS_VAR_MAP_SETTING_KEY) ?? {};
+    }
+    set cssVarMap(value: {[k: string]: {[k: string]: string}}) {
+        sketch.Settings.setSettingForKey(CSS_VAR_MAP_SETTING_KEY, value);
+    }
+
     private _readDocumentSetting<T>(field: string, defaultValue: T): T {
         let value = sketch.Settings.documentSettingForKey<T>(this._document, field);
         // logger.debug(`read config: "${field}"=${value}`);
@@ -63,6 +74,7 @@ export class ConfigsMaster {
     private _setDocumentSetting<T>(field: string, value: T) {
         sketch.Settings.setDocumentSettingForKey(this._document, field, value);
     }
+    
     private _readSessionVariable<T>(field: string, defaultValue: T): T {
         let value = sketch.Settings.sessionVariable<T>(field);
         // logger.debug(`read config: "${field}"=${value}`);

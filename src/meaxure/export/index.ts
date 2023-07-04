@@ -15,7 +15,7 @@ import { getLayerData } from "./layerData";
 import { clearSliceCache, getCollectedSlices } from "./slice";
 import { clearMaskStack } from "./mask";
 import { getDocumentColors } from "./colors";
-import { clearTintStack, TintInfo } from "./tint";
+import { clearTintStack } from "./tint";
 import { tempLayers } from "./tempLayers";
 import { LayerPlaceholder } from "./layers";
 
@@ -106,7 +106,7 @@ export async function exportSpecification() {
             // stopwatch.tik('renameIfIsMarker');
             let taskError: Error;
             // stopwatch.tik('before promise');
-            await getLayerTask(artboard, layer, data.artboards[i], results.byInfluence)
+            await getLayerTask(artboard, layer, data.artboards[i], results.byInfluence, results.platform)
                 .catch(err => taskError = err);
             if (taskError) {
                 onFinishCleanup();
@@ -161,10 +161,10 @@ export async function exportSpecification() {
     // sketch.UI.alert('statistics', Object.keys(statistics).map(key => `${key}: ${statistics[key] / 1000}s`).join('\n'))
 }
 
-function getLayerTask(artboard: Artboard, layer: Layer | LayerPlaceholder, data: ArtboardData, byInfluence: boolean, symbolLayer?: Layer): Promise<boolean> {
+function getLayerTask(artboard: Artboard, layer: Layer | LayerPlaceholder, data: ArtboardData, byInfluence: boolean, platform: string, symbolLayer?: Layer): Promise<boolean> {
     return new Promise<true>((resolve, reject) => {
         try {
-            getLayerData(artboard, layer, data, byInfluence, symbolLayer)
+            getLayerData(artboard, layer, data, byInfluence, platform, symbolLayer)
         } catch (error) {
             reject(error)
         }

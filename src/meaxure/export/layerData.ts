@@ -7,19 +7,37 @@ import { sketch } from "../../sketch";
 import { toHTMLEncode, emojiToEntities } from "../helpers/helper";
 import { getTextFragment } from "./textFragment";
 import { applyMasks, updateMaskStackBeforeLayer } from "./mask";
-import { getLayerRadius, getBordersFromStyle, getFillsFromStyle, getShadowsFromStyle, parseColor } from "../helpers/styles";
+import {
+    getLayerRadius,
+    getBordersFromStyle,
+    getFillsFromStyle,
+    getShadowsFromStyle,
+    parseColor
+} from "../helpers/styles";
 import { SMRect } from "../interfaces";
 import { getSlice } from "./slice";
 import { makeNote } from "./note";
 import { getSymbol } from "./symbol";
-import { applyTint, pushTintStack, TintInfo, updateTintStackBeforeLayer } from "./tint";
-import { stopwatch } from ".";
+import {
+    applyTint,
+    pushTintStack,
+    TintInfo,
+    updateTintStackBeforeLayer
+} from "./tint";
 import { getFlow } from "./flow";
 import { tempLayers } from "./tempLayers";
 import { renameIfIsMarker } from "../helpers/renameOldMarkers";
 import { LayerPlaceholder, LayerPlaceholderType } from "./layers";
+import { context } from "../common/context";
 
-export function getLayerData(artboard: Artboard, layer: Layer | LayerPlaceholder, data: ArtboardData, byInfluence: boolean, symbolLayer?: Layer) {
+export function getLayerData(
+    artboard: Artboard,
+    layer: Layer | LayerPlaceholder,
+    data: ArtboardData,
+    byInfluence: boolean,
+    platform = "",
+    symbolLayer?: Layer
+) {
     if (layer instanceof LayerPlaceholder) {
         dealWithPlaceholder(layer);
         return;
@@ -29,7 +47,7 @@ export function getLayerData(artboard: Artboard, layer: Layer | LayerPlaceholder
     // stopwatch.tik('before updateMaskStackBeforeLayer');
     updateMaskStackBeforeLayer(layer);
     updateTintStackBeforeLayer(layer);
-    getLayerData2(artboard, layer, data, byInfluence, symbolLayer)
+    getLayerData2(artboard, layer, data, byInfluence, platform, symbolLayer);
     // stopwatch.tik('update stack');
 }
 
@@ -39,11 +57,18 @@ function dealWithPlaceholder(p: LayerPlaceholder) {
             pushTintStack(p.getValue<TintInfo>());
             break;
         default:
-            throw ("unknown LayerPlaceholder type: " + p.getType())
+            throw "unknown LayerPlaceholder type: " + p.getType();
     }
 }
 
-function getLayerData2(artboard: Artboard, layer: Layer, data: ArtboardData, byInfluence: boolean, symbolLayer?: Layer) {
+function getLayerData2(
+    artboard: Artboard,
+    layer: Layer,
+    data: ArtboardData,
+    byInfluence: boolean,
+    platform: string,
+    symbolLayer?: Layer
+) {
     // stopwatch.tik('updateMaskStackBeforeLayer');
     let layerRect = getSMRect(layer, artboard, byInfluence);
     layerRect = applyMasks(layer, layerRect, artboard);
@@ -59,13 +84,15 @@ function getLayerData2(artboard: Artboard, layer: Layer, data: ArtboardData, byI
     // stopwatch.tik('make notes');
     let layerStates = getLayerStates(layer);
     // stopwatch.tik('getLayerStates');
-    if (!isExportable(layer) ||
+    if (
+        !isExportable(layer) ||
         layerStates.isHidden ||
         (layerStates.isLocked && layer.type != sketch.Types.Slice) ||
         layerStates.isEmptyText ||
         layerStates.isInSlice ||
         layerStates.isMeaXure ||
-        layerStates.isInShapeGroup) {
+        layerStates.isInShapeGroup
+    ) {
         return;
     }
 
@@ -76,7 +103,7 @@ function getLayerData2(artboard: Artboard, layer: Layer, data: ArtboardData, byI
         objectID: symbolLayer ? symbolLayer.id : layer.id,
         type: layerType,
         name: toHTMLEncode(emojiToEntities(layer.name)),
-        rect: layerRect,
+        rect: layerRect
     };
     data.layers.push(layerData);
     getFlow(layer, layerData);
@@ -85,16 +112,23 @@ function getLayerData2(artboard: Artboard, layer: Layer, data: ArtboardData, byI
         return;
     }
     // stopwatch.tik('prepare layer data');
-    getLayerStyles(layer, layerType, layerData);
+    getLayerStyles(layer, layerType, layerData, platform);
     // stopwatch.tik('getLayerStyles');
     applyTint(layer, layerData);
     // stopwatch.tik('applyTint');
     getSlice(layer, layerData, symbolLayer);
     // stopwatch.tik('getSlice');
     if (layerData.type == SMType.symbol) {
-        getSymbol(artboard, layer as SymbolInstance, layerData, data, byInfluence);
+        getSymbol(
+            artboard,
+            layer as SymbolInstance,
+            layerData,
+            data,
+            byInfluence,
+            platform
+        );
     }
-    getTextFragment(artboard, layer as Text, data);
+    getTextFragment(artboard, layer as Text, data, platform);
     // stopwatch.tik('getTextFragment');
 }
 
@@ -109,7 +143,17 @@ function getSMType(layer: Layer): SMType {
     return SMType.shape;
 }
 
-function getLayerStyles(layer: Layer, layerType: SMType, layerData: LayerData) {
+const replaceAttrFn = (platform: string) => (...match: string[]) => {
+    const v = context.configs.cssVarMap[platform][match[2].toLowerCase()];
+    return v ? `${match[1]}${v}` : match[0];
+};
+
+function getLayerStyles(
+    layer: Layer,
+    layerType: SMType,
+    layerData: LayerData,
+    platform: string
+) {
     if (layerType != SMType.slice) {
         let layerStyle = layer.style;
         layerData.shadows = getShadowsFromStyle(layerStyle);
@@ -121,7 +165,7 @@ function getLayerStyles(layer: Layer, layerType: SMType, layerData: LayerData) {
             // don't show tint fills for group
             layerData.fills = getFillsFromStyle(layerStyle);
             let sharedStyle = (layer as ShapePath).sharedStyle;
-            layerData.styleName = sharedStyle ? sharedStyle.name : '';
+            layerData.styleName = sharedStyle ? sharedStyle.name : "";
         }
     }
     if (layerType == "text") {
@@ -134,26 +178,50 @@ function getLayerStyles(layer: Layer, layerType: SMType, layerData: LayerData) {
         layerData.letterSpacing = text.style.kerning || 0;
         layerData.lineHeight = text.style.lineHeight;
     }
-    layerData.css = layer.CSSAttributes.filter(attr => !/\/\*/.test(attr));
+
+    const replaceAttr = replaceAttrFn(platform);
+    layerData.css = layer.CSSAttributes.filter(
+        (attr) => !/\/\*/.test(attr)
+    ).map((attr) =>
+        platform
+            ? attr
+                  .replace(/(\x20|:)((\d+)px)(\b|;)/g, replaceAttr)
+                  .replace(
+                      /(\x20|:)((#[a-z0-9]{3})|(#[a-z0-9]{6}))(\b|;|,)/gi,
+                      replaceAttr
+                  )
+            : attr
+    );
 }
-function getSMRect(layer: Layer, artboard: Artboard, byInfluence: boolean): SMRect {
+function getSMRect(
+    layer: Layer,
+    artboard: Artboard,
+    byInfluence: boolean
+): SMRect {
     let layerFrame: Rectangle;
     if (byInfluence && layer.type != sketch.Types.Text) {
         // export the influence rect.(include the area of shadows and outside borders...)
-        layerFrame = layer.frameInfluence.changeBasis({ from: layer.parent as Group, to: artboard });
+        layerFrame = layer.frameInfluence.changeBasis({
+            from: layer.parent as Group,
+            to: artboard
+        });
     } else {
         // export the default rect.
-        layerFrame = layer.frame.changeBasis({ from: layer.parent as Group, to: artboard });
+        layerFrame = layer.frame.changeBasis({
+            from: layer.parent as Group,
+            to: artboard
+        });
     }
     return {
         x: layerFrame.x,
         y: layerFrame.y,
         width: layerFrame.width,
-        height: layerFrame.height,
-    }
+        height: layerFrame.height
+    };
 }
 function isExportable(layer: Layer) {
-    return layer.type == sketch.Types.Text ||
+    return (
+        layer.type == sketch.Types.Text ||
         layer.type == sketch.Types.Group ||
         layer.type == sketch.Types.Shape ||
         layer.type == sketch.Types.ShapePath ||
@@ -161,6 +229,7 @@ function isExportable(layer: Layer) {
         layer.type == sketch.Types.Slice ||
         layer.type == sketch.Types.SymbolInstance ||
         layer.type == sketch.Types.HotSpot
+    );
 }
 function getLayerStates(layer: Layer): LayerStates {
     let isHidden = false;
@@ -170,15 +239,23 @@ function getLayerStates(layer: Layer): LayerStates {
     let isMeaXure = false;
     let isInShapeGroup = false;
 
-    while (layer.type != sketch.Types.Artboard && layer.type != sketch.Types.SymbolMaster) {
+    while (
+        layer.type != sketch.Types.Artboard &&
+        layer.type != sketch.Types.SymbolMaster
+    ) {
         let parent = layer.parent as Group;
-        if (!isMeaXure) isMeaXure = layer.name.startsWith('#meaxure-');
+        if (!isMeaXure) isMeaXure = layer.name.startsWith("#meaxure-");
         // if parents is shape, this is in shape group
         if (!isInShapeGroup) isInShapeGroup = parent.type == sketch.Types.Shape;
         if (!isHidden) isHidden = layer.hidden && !tempLayers.exists(layer);
         if (!isLocked) isLocked = layer.locked;
-        if (!isInSlice) isInSlice = parent.type == sketch.Types.Group && parent.exportFormats.length > 0;
-        if (!isEmptyText) isEmptyText = layer.type == sketch.Types.Text && (layer as Text).isEmpty
+        if (!isInSlice)
+            isInSlice =
+                parent.type == sketch.Types.Group &&
+                parent.exportFormats.length > 0;
+        if (!isEmptyText)
+            isEmptyText =
+                layer.type == sketch.Types.Text && (layer as Text).isEmpty;
         layer = parent;
     }
     return {
@@ -188,5 +265,5 @@ function getLayerStates(layer: Layer): LayerStates {
         isMeaXure: isMeaXure,
         isEmptyText: isEmptyText,
         isInShapeGroup: isInShapeGroup
-    }
+    };
 }

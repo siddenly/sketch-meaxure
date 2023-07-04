@@ -770,3 +770,49 @@ button{
     background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoBAMAAAB+0KVeAAAAHlBMVEUAAAD///////////////////////////////////8kfJuVAAAACXRSTlMA7tm7lWpEJhE46DAfAAAAR0lEQVQoz2MYkiAUixjbzARMwcKZ4hhiHJozJzWgCzLPnDnTAF3QEyg4BdPamdisnYnN2pnYrJ2JzdqZ6NaiCkJ5I1Zw0AMALjgj3XRPFaMAAAAASUVORK5CYII=');
 }
 
+.css-var-map-error {
+    display: none;
+    margin: 0;
+    color: red;
+    font-size: 12px;
+}
+
+.order-selector {
+    padding: 15px 24px;
+}
+.platform-selector {
+    height: 80px;
+    margin: 0 24px 15px;
+    overflow: auto;
+}
+.platform-selector h4 {
+    margin-top: 0;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+.platform-selector label {
+    display: inline-block;
+    margin-right: 15px;
+    line-height: 30px;
+}
+.platform-selector label:not(:last-of-type) {
+    cursor: pointer;
+}
+.platform-selector input {
+    position: relative;
+    margin-right: 5px;
+    vertical-align: middle;
+    cursor: inherit;
+}
+.platform-selector input:checked::after {
+    content: "";
+    position: absolute;
+    top: -1px;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background-color: #3484f5;
+}

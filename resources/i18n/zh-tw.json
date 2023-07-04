@@ -65,6 +65,7 @@
     "Color hex": "十六進位色碼",
     "ARGB hex": "ARGB 十六進位色碼",
     "Artboard order": "畫板排序",
+    "CSS Var Map tip": "請輸入正確的JSON格式，僅支持16進制顔色及px的長度",
     "Order by artboard rows": "按畫板行排序",
     "Order by artboard columns": "按畫板列排序",
 	"Order by alphabet": "按名稱排序",
@@ -135,5 +136,7 @@
     "Processing layer %@ of %@": "正在處理圖層... %@ \/ %@",
     "Advanced mode": "進階模式",
     "Export layer influence rect": "匯出圖層的影響尺寸",
-    "Keyboard shortcut": "快捷鍵"
+    "Keyboard shortcut": "快捷鍵",
+    "Use CSS var": "CSS變量",
+	"Without CSS var": "不使用"
 }
